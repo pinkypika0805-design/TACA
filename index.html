@@ -3,67 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>製程計算與換算工具</title>
+    <title>製程計算機 (含換算工具)</title>
     <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: #f4f7f9; margin: 0; padding: 15px; }
-        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
-        h2 { font-size: 1.2rem; margin-top: 0; color: #2c3e50; border-left: 5px solid #3498db; padding-left: 10px; }
-        .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
-        .input-group { flex: 1; }
-        label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 4px; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; background: #fafafa; }
-        .result-box { background: #eef7fe; border-radius: 10px; padding: 15px; margin-top: 15px; text-align: center; }
-        .res-label { font-size: 0.9rem; color: #5d6d7e; }
-        .res-val { font-size: 1.5rem; font-weight: 900; color: #2980b9; display: block; margin: 5px 0; }
-        .divider { border-top: 1px dashed #ddd; margin: 20px 0; }
-        .tool-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; line-height: 1.5; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        h2 { font-size: 1.25rem; margin: 0 0 15px 0; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .hint { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; }
+        .section-title { font-size: 0.95rem; font-weight: 700; margin: 15px 0 10px; color: var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; }
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; transition: border 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .res-display { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 15px; margin-top: 15px; }
+        .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .res-row:last-child { margin-bottom: 0; }
+        .res-label { font-size: 0.85rem; color: #0369a1; }
+        .res-num { font-size: 1.25rem; font-weight: 800; color: #0284c7; }
+        .hr { border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+        .swap-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+        .arrow { color: #94a3b8; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>⚙️ 製程計算 (主程式)</h2>
-    <label>1. 本製程 (現況)</label>
-    <div class="input-row">
-        <div class="input-group"><label>寬</label><input type="number" id="w1" oninput="calcMain()"></div>
-        <div class="input-group"><label>厚</label><input type="number" id="t1" oninput="calcMain()"></div>
-        <div class="input-group"><label>速</label><input type="number" id="s1" oninput="calcMain()"></div>
-    </div>
-    <div class="result-box" style="background:#f9f9f9;">
-        <span class="res-label">目前總流量 (M)</span>
-        <span id="m_now" class="res-val" style="color:#7f8c8d;">---</span>
-    </div>
-    <div class="divider"></div>
-    <label>2. 下一製程 (目標規格)</label>
-    <div class="input-row">
-        <div class="input-group"><label>目標寬</label><input type="number" id="w2" oninput="calcMain()"></div>
-        <div class="input-group"><label>目標厚</label><input type="number" id="t2" oninput="calcMain()"></div>
-    </div>
-    <div class="result-box">
-        <span class="res-label">建議 料速 (S)</span>
-        <span id="s_suggest" class="res-val">---</span>
-    </div>
-</div>
+<div class="container">
+    <div class="card">
+        <h2>⚙️ 製程計算 (主程式)</h2>
+        <div class="hint">優先鎖定料速，極限才動</div>
 
-<div class="card">
-    <h2>🔄 快速換算工具</h2>
-    <div class="input-row">
-        <div class="input-group"><label>基準 料量 (M)</label><input type="number" id="bm" oninput="calcSwap()"></div>
-        <div class="input-group"><label>基準 料速 (S)</label><input type="number" id="bs" oninput="calcSwap()"></div>
+        <div class="section-title">1. 本製程 (現況)</div>
+        <div class="grid">
+            <div class="input-group"><label>寬</label><input type="number" id="w1" oninput="calcMain()" placeholder="0"></div>
+            <div class="input-group"><label>厚</label><input type="number" id="t1" oninput="calcMain()" placeholder="0"></div>
+            <div class="input-group"><label>速</label><input type="number" id="s1" oninput="calcMain()" placeholder="0"></div>
+        </div>
+
+        <div class="section-title">2. 下一製程 (目標)</div>
+        <div class="grid">
+            <div class="input-group"><label>目標寬</label><input type="number" id="w2" oninput="calcMain()" placeholder="0"></div>
+            <div class="input-group"><label>目標厚</label><input type="number" id="t2" oninput="calcMain()" placeholder="0"></div>
+            <div class="input-group"><label>目標速</label><input type="number" id="s2" oninput="calcMain()" placeholder="0"></div>
+        </div>
+
+        <div id="main-result" class="res-display">
+            <div class="res-row"><span class="res-label">建議 料量 (M)</span><span id="m_suggest" class="res-num">---</span></div>
+            <div class="res-row"><span class="res-label">建議 料速 (S)</span><span id="s_suggest" class="res-val res-num">---</span></div>
+        </div>
     </div>
-    <div class="divider"></div>
-    <label>👉 改料量求料速：</label>
-    <div class="tool-row">
-        <input type="number" id="nm" placeholder="新料量" oninput="calcSwap()">
-        <span style="color:#95a5a6;">➔</span>
-        <div style="flex:1; text-align:right;"><span id="rs" class="res-val" style="font-size:1.2rem;">---</span></div>
-    </div>
-    <label style="margin-top:15px; display:block;">👉 改料速求料量：</label>
-    <div class="tool-row">
-        <input type="number" id="ns" placeholder="新料速" oninput="calcSwap()">
-        <span style="color:#95a5a6;">➔</span>
-        <div style="flex:1; text-align:right;"><span id="rm" class="res-val" style="font-size:1.2rem;">---</span></div>
+
+    <div class="card">
+        <h2>🔄 快速換算工具 (手動微調)</h2>
+        <div class="hint">維持總流量 (料量 × 料速) 恆定</div>
+        
+        <div class="grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="input-group"><label>基準 料量 (M)</label><input type="number" id="base_m" oninput="calcSwap()" placeholder="基準M"></div>
+            <div class="input-group"><label>基準 料速 (S)</label><input type="number" id="base_s" oninput="calcSwap()" placeholder="基準S"></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="input-group">
+            <label>👉 如果我想改成新的料量...</label>
+            <div class="swap-row">
+                <input type="number" id="new_m" placeholder="新料量" oninput="calcSwap()">
+                <span class="arrow">➔</span>
+                <div style="flex:1; text-align:right;"><span class="res-label">料速: </span><span id="res_s" class="res-num" style="color:#d9480f;">---</span></div>
+            </div>
+        </div>
+
+        <div class="input-group" style="margin-top:20px;">
+            <label>👉 如果我想改成新的料速...</label>
+            <div class="swap-row">
+                <input type="number" id="new_s" placeholder="新料速" oninput="calcSwap()">
+                <span class="arrow">➔</span>
+                <div style="flex:1; text-align:right;"><span class="res-label">料量: </span><span id="res_m" class="res-num" style="color:#d9480f;">---</span></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -74,28 +92,47 @@
         const s1 = parseFloat(document.getElementById('s1').value) || 0;
         const w2 = parseFloat(document.getElementById('w2').value) || 0;
         const t2 = parseFloat(document.getElementById('t2').value) || 0;
+        const s2 = parseFloat(document.getElementById('s2').value) || 0;
 
-        const mNow = w1 * t1 * s1;
-        document.getElementById('m_now').innerText = mNow ? mNow.toFixed(2) : "---";
-
-        if (mNow && w2 && t2) {
-            const sSuggest = mNow / (w2 * t2);
-            document.getElementById('s_suggest').innerText = sSuggest.toFixed(2);
+        // 計算目前總量 M = W * T * S
+        const currentM = w1 * t1 * s1;
+        
+        // 建議料量 = 目前總量 / (目標寬 * 目標厚) --> 這通常是為了求出在目標寬厚下的對應係數
+        // 邏輯：下一製程料量 M = (w1*t1*s1) / (w2*t2)
+        if (currentM && w2 && t2) {
+            const mSuggest = currentM / (w2 * t2);
+            document.getElementById('m_suggest').innerText = mSuggest.toFixed(2);
+            
+            // 如果有輸入目標速，則建議料速 = mSuggest (此處邏輯依據原始網頁)
+            // 或是維持原本比例計算
+            document.getElementById('s_suggest').innerText = mSuggest.toFixed(2);
         } else {
+            document.getElementById('m_suggest').innerText = "---";
             document.getElementById('s_suggest').innerText = "---";
         }
     }
 
     function calcSwap() {
-        const bm = parseFloat(document.getElementById('bm').value) || 0;
-        const bs = parseFloat(document.getElementById('bs').value) || 0;
-        const nm = parseFloat(document.getElementById('nm').value) || 0;
-        const ns = parseFloat(document.getElementById('ns').value) || 0;
-        const total = bm * bs;
+        const bm = parseFloat(document.getElementById('base_m').value) || 0;
+        const bs = parseFloat(document.getElementById('base_s').value) || 0;
+        const nm = parseFloat(document.getElementById('new_m').value) || 0;
+        const ns = parseFloat(document.getElementById('new_s').value) || 0;
+        
+        const totalFlow = bm * bs;
 
-        if (total && nm) document.getElementById('rs').innerText = (total / nm).toFixed(2);
-        if (total && ns) document.getElementById('rm').innerText = (total / ns).toFixed(2);
+        if (totalFlow && nm) {
+            document.getElementById('res_s').innerText = (totalFlow / nm).toFixed(2);
+        } else {
+            document.getElementById('res_s').innerText = "---";
+        }
+
+        if (totalFlow && ns) {
+            document.getElementById('res_m').innerText = (totalFlow / ns).toFixed(2);
+        } else {
+            document.getElementById('res_m').innerText = "---";
+        }
     }
 </script>
+
 </body>
 </html>
