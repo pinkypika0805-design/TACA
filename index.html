@@ -2,123 +2,212 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>製程計算機 (含換算工具)</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .container { max-width: 500px; margin: 0 auto; }
-        .card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        h2 { font-size: 1.25rem; margin: 0 0 10px 0; color: #0f172a; }
-        .hint { font-size: 0.85rem; color: #ef4444; margin-bottom: 15px; font-weight: bold; }
-        .section-title { font-size: 0.95rem; font-weight: 700; margin: 15px 0 10px; color: var(--primary); }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; }
-        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
-        .res-display { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-top: 10px; }
-        .res-target { background: #f0f9ff; border: 1px solid #bae6fd; }
-        .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .res-label { font-size: 0.85rem; color: #64748b; }
-        .res-num { font-size: 1.2rem; font-weight: 800; color: #1e293b; }
-        .highlight { color: #0284c7; }
-        .hr { border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0; }
-        .swap-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f4f6f8; padding: 20px; display: flex; justify-content: center; padding-bottom: 50px; }
+        .main-wrapper { width: 100%; max-width: 450px; }
+        
+        /* 卡片通用樣式 */
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        
+        h2, h3 { text-align: center; color: #333; margin: 0 0 15px 0; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 16px; color: #555; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+
+        /* 標題與分隔線 */
+        .section-header { font-size: 14px; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #444; }
+        .blue-text { color: #1565c0; }
+        .orange-text { color: #e65100; }
+        .purple-text { color: #6a1b9a; }
+
+        /* 輸入框 */
+        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-col { flex: 1; }
+        label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; text-align: center; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; text-align: center; font-size: 18px; font-weight: 500; }
+        input:focus { outline: none; border-color: #2196f3; background-color: #f0f8ff; }
+
+        .bg-blue { background-color: #e3f2fd; color: #0d47a1; }
+        .bg-orange { background-color: #fff3e0; color: #e65100; }
+        .bg-purple { background-color: #f3e5f5; color: #4a148c; }
+        
+        /* 結果區塊 */
+        .result-container { margin-top: 20px; background-color: #f1f8e9; border-radius: 12px; padding: 15px; border: 2px solid #aed581; position: relative; }
+        .result-row { display: flex; justify-content: space-around; align-items: center; }
+        .res-item { text-align: center; width: 45%; }
+        .res-label { font-size: 12px; color: #558b2f; margin-bottom: 2px; }
+        .res-val { font-size: 28px; font-weight: bold; color: #2e7d32; }
+        .status-badge { 
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            background: #33691e; color: white; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: bold;
+        }
+
+        /* 換算工具區塊 */
+        .converter-box { background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-top: 10px; }
+        .arrow-icon { font-size: 20px; color: #999; margin: 0 5px; }
+
+        /* 警告樣式 */
+        .warn-bg { background-color: #ffebee !important; border-color: #ef5350 !important; }
+        .warn-text { color: #c62828 !important; }
+        .warn-badge { background: #c62828 !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="main-wrapper">
+    
     <div class="card">
         <h2>⚙️ 製程計算 (主程式)</h2>
-        <div class="hint">優先鎖定料速，極限才動</div>
+        <div style="font-size:12px; text-align:center; color:#888; margin-bottom:10px;">優先鎖定料速，極限才動</div>
 
-        <div class="section-title">1. 本製程 (現況)</div>
-        <div class="grid">
-            <div class="input-group"><label>寬</label><input type="number" id="w1" oninput="calc()" placeholder="0"></div>
-            <div class="input-group"><label>厚</label><input type="number" id="t1" oninput="calc()" placeholder="0"></div>
-            <div class="input-group"><label>速</label><input type="number" id="s1" oninput="calc()" placeholder="0"></div>
+        <div class="section-header blue-text">1. 本製程 (現況)</div>
+        <div class="input-row">
+            <div class="input-col"><label>寬</label><input type="number" id="currW" class="bg-blue" oninput="solve()"></div>
+            <div class="input-col"><label>厚</label><input type="number" id="currT" class="bg-blue" oninput="solve()"></div>
+            <div class="input-col"><label>速</label><input type="number" id="currV" class="bg-blue" oninput="solve()"></div>
         </div>
-
-        <div class="res-display">
-            <div class="res-row"><span class="res-label">目前 料量 M</span><span id="m1_val" class="res-num">---</span></div>
-            <div class="res-row"><span class="res-label">目前 料速 S</span><span id="s1_val" class="res-num">---</span></div>
-        </div>
-
-        <div class="section-title">2. 下一製程 (目標)</div>
-        <div class="grid">
-            <div class="input-group"><label>寬</label><input type="number" id="w2" oninput="calc()" placeholder="0"></div>
-            <div class="input-group"><label>厚</label><input type="number" id="t2" oninput="calc()" placeholder="0"></div>
-            <div class="input-group"><label>速</label><input type="number" id="s2" oninput="calc()" placeholder="0"></div>
+        <div class="input-row">
+            <div class="input-col"><label>目前 料量 M</label><input type="number" id="currM" placeholder="6~11" style="border:2px solid #bbdefb;" oninput="solve()"></div>
+            <div class="input-col"><label>目前 料速 S</label><input type="number" id="currS" placeholder="24~28" style="border:2px solid #bbdefb;" oninput="solve()"></div>
         </div>
 
-        <div class="res-display res-target">
-            <div class="res-row"><span class="res-label">建議 料量 (M)</span><span id="m2_val" class="res-num highlight">---</span></div>
-            <div class="res-row"><span class="res-label">建議 料速 (S)</span><span id="s2_val" class="res-num highlight">---</span></div>
+        <div class="section-header orange-text">2. 下一製程 (目標)</div>
+        <div class="input-row">
+            <div class="input-col"><label>寬</label><input type="number" id="nextW" class="bg-orange" oninput="solve()"></div>
+            <div class="input-col"><label>厚</label><input type="number" id="nextT" class="bg-orange" oninput="solve()"></div>
+            <div class="input-col"><label>速</label><input type="number" id="nextV" class="bg-orange" oninput="solve()"></div>
         </div>
-    </div>
 
-    <div class="card">
-        <h2>🔄 快速換算工具</h2>
-        <div class="grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="input-group"><label>基準 料量 (M)</label><input type="number" id="bm" oninput="swap()" placeholder="基準M"></div>
-            <div class="input-group"><label>基準 料速 (S)</label><input type="number" id="bs" oninput="swap()" placeholder="基準S"></div>
-        </div>
-        <div class="hr"></div>
-        <div class="input-group">
-            <label>👉 如果我想改成新的料量...</label>
-            <div class="swap-row">
-                <input type="number" id="nm" placeholder="新料量" oninput="swap()">
-                <span style="color:#94a3b8;">➔</span>
-                <div style="flex:1; text-align:right;"><span class="res-label">料速: </span><span id="rs" class="res-num" style="color:#d9480f;">---</span></div>
-            </div>
-        </div>
-        <div class="input-group" style="margin-top:15px;">
-            <label>👉 如果我想改成新的料速...</label>
-            <div class="swap-row">
-                <input type="number" id="ns" placeholder="新料速" oninput="swap()">
-                <span style="color:#94a3b8;">➔</span>
-                <div style="flex:1; text-align:right;"><span class="res-label">料量: </span><span id="rm" class="res-num" style="color:#d9480f;">---</span></div>
+        <div class="result-container" id="resBox">
+            <div class="status-badge" id="statusBadge">等待輸入...</div>
+            <div class="result-row">
+                <div class="res-item">
+                    <div class="res-label">建議 料量 (M)</div>
+                    <div class="res-val" id="resM">---</div>
+                </div>
+                <div class="res-item">
+                    <div class="res-label">建議 料速 (S)</div>
+                    <div class="res-val" id="resS">---</div>
+                </div>
             </div>
         </div>
     </div>
+
+    <div class="card" style="border-top: 4px solid #9c27b0;">
+        <h3>🔄 快速換算工具 (手動微調)</h3>
+        <div style="font-size:12px; color:#666; margin-bottom:10px; text-align:center;">
+            輸入基準值，換算另一邊 (維持總流量)
+        </div>
+
+        <div class="input-row">
+            <div class="input-col"><label>基準 料量</label><input type="number" id="convBaseM" class="bg-purple" placeholder="M" oninput="calcConvert()"></div>
+            <div class="input-col"><label>基準 料速</label><input type="number" id="convBaseS" class="bg-purple" placeholder="S" oninput="calcConvert()"></div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+
+        <div class="converter-box">
+            <label style="text-align:left; font-weight:bold; color:#333;">👉 如果我想改成新的料量...</label>
+            <div class="input-row" style="align-items:center;">
+                <div class="input-col"><input type="number" id="targetM" placeholder="新料量" oninput="convertByM()"></div>
+                <div class="arrow-icon">➔</div>
+                <div class="input-col">
+                    <div id="outS" style="font-size:24px; font-weight:bold; text-align:center; color:#555;">---</div>
+                    <div style="font-size:10px; text-align:center; color:#999;">對應料速</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="converter-box">
+            <label style="text-align:left; font-weight:bold; color:#333;">👉 如果我想改成新的料速...</label>
+            <div class="input-row" style="align-items:center;">
+                <div class="input-col"><input type="number" id="targetS" placeholder="新料速" oninput="convertByS()"></div>
+                <div class="arrow-icon">➔</div>
+                <div class="input-col">
+                    <div id="outM" style="font-size:24px; font-weight:bold; text-align:center; color:#555;">---</div>
+                    <div style="font-size:10px; text-align:center; color:#999;">對應料量</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    function calc() {
-        const w1 = parseFloat(document.getElementById('w1').value) || 0;
-        const t1 = parseFloat(document.getElementById('t1').value) || 0;
-        const s1 = parseFloat(document.getElementById('s1').value) || 0;
-        const w2 = parseFloat(document.getElementById('w2').value) || 0;
-        const t2 = parseFloat(document.getElementById('t2').value) || 0;
-        const s2 = parseFloat(document.getElementById('s2').value) || 0;
+    // === 參數設定 ===
+    const MIN_M = 6.0, MAX_M = 11.0;
+    const MIN_S = 24.0, MAX_S = 28.0;
 
-        // 1. 顯示目前現況
-        const currentTotal = w1 * t1 * s1;
-        document.getElementById('m1_val').innerText = currentTotal ? currentTotal.toFixed(2) : "---";
-        document.getElementById('s1_val').innerText = s1 ? s1.toFixed(2) : "---";
+    // --- 主程式邏輯 (維持不變) ---
+    function solve() {
+        let cW = parseFloat(document.getElementById('currW').value);
+        let cT = parseFloat(document.getElementById('currT').value);
+        let cV = parseFloat(document.getElementById('currV').value);
+        let cM = parseFloat(document.getElementById('currM').value);
+        let cS = parseFloat(document.getElementById('currS').value);
+        let nW = parseFloat(document.getElementById('nextW').value);
+        let nT = parseFloat(document.getElementById('nextT').value);
+        let nV = parseFloat(document.getElementById('nextV').value);
 
-        // 2. 計算目標建議 (邏輯：維持總流量不變)
-        if (currentTotal && w2 && t2) {
-            const m2 = currentTotal / (w2 * t2);
-            document.getElementById('m2_val').innerText = m2.toFixed(2);
-            document.getElementById('s2_val').innerText = m2.toFixed(2); // 依據原始工具邏輯輸出
+        if (cW && cT && cV && cM && cS && nW && nT && nV) {
+            let currentVol = cW * cT * cV;
+            let nextVol = nW * nT * nV;
+            if (currentVol === 0) return;
+            
+            let targetFlow = (cM * cS) * (nextVol / currentVol);
+
+            // 優先鎖定 S
+            let finalM = 0;
+            let finalS = cS; 
+            let status = "";
+            let isError = false;
+
+            let tryM = targetFlow / finalS;
+
+            if (tryM >= MIN_M && tryM <= MAX_M) {
+                finalM = tryM;
+                status = "✅ 僅調整料量";
+            } else {
+                if (tryM < MIN_M) {
+                    finalM = MIN_M;
+                    status = "⚠️ 料量達下限";
+                } else {
+                    finalM = MAX_M;
+                    status = "⚠️ 料量達上限";
+                }
+                finalS = targetFlow / finalM;
+            }
+
+            if (finalS < MIN_S || finalS > MAX_S) {
+                isError = true;
+                status = "❌ 無法達成 (S超標)";
+            }
+
+            document.getElementById('resM').innerText = finalM.toFixed(2);
+            document.getElementById('resS').innerText = finalS.toFixed(2);
+            
+            // 自動填入下方換算工具的基準值 (方便使用)
+            document.getElementById('convBaseM').value = finalM.toFixed(2);
+            document.getElementById('convBaseS').value = finalS.toFixed(2);
+            // 清空換算結果
+            document.getElementById('targetM').value = "";
+            document.getElementById('targetS').value = "";
+            document.getElementById('outS').innerText = "---";
+            document.getElementById('outM').innerText = "---";
+
+            updateStyle(status, isError, finalS !== cS);
         } else {
-            document.getElementById('m2_val').innerText = "---";
-            document.getElementById('s2_val').innerText = "---";
+            document.getElementById('resM').innerText = "---";
+            document.getElementById('resS').innerText = "---";
+            document.getElementById('statusBadge').innerText = "等待輸入...";
         }
     }
 
-    function swap() {
-        const bm = parseFloat(document.getElementById('bm').value) || 0;
-        const bs = parseFloat(document.getElementById('bs').value) || 0;
-        const nm = parseFloat(document.getElementById('nm').value) || 0;
-        const ns = parseFloat(document.getElementById('new_s') ? 0 : document.getElementById('ns').value) || 0;
-        const baseTotal = bm * bs;
+    function updateStyle(status, isError, isChangedS) {
+        let resBox = document.getElementById('resBox');
+        let badge = document.getElementById('statusBadge');
+        badge.innerText = status;
 
-        if (baseTotal && nm) document.getElementById('rs').innerText = (baseTotal / nm).toFixed(2);
-        if (baseTotal && ns) document.getElementById('rm').innerText = (baseTotal / ns).toFixed(2);
-    }
-</script>
-</body>
-</html>
+        if (isError) {
+            resBox.className = "resul
